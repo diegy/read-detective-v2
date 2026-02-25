@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阅读侦探 | ReadDetective</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0A0A0F;
+            --bg-secondary: #12121A;
+            --bg-card: #1a1a25;
+            --accent-cyan: #00F0FF;
+            --accent-pink: #FF006E;
+            --accent-yellow: #FFE66D;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8B8B9E;
+            --text-muted: #5a5a6e;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            animation: glitch-skew 3s infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            color: var(--accent-pink);
+            z-index: -1;
+        }
+
+        .glitch::after {
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+            color: var(--accent-cyan);
+            z-index: -2;
+        }
+
+        @keyframes glitch-anim-1 {
+            0%, 100% { clip-path: inset(0 0 95% 0); transform: translate(-2px, 0); }
+            20% { clip-path: inset(20% 0 60% 0); transform: translate(2px, 0); }
+            40% { clip-path: inset(40% 0 40% 0); transform: translate(-2px, 0); }
+            60% { clip-path: inset(60% 0 20% 0); transform: translate(2px, 0); }
+            80% { clip-path: inset(80% 0 5% 0); transform: translate(-2px, 0); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0%, 100% { clip-path: inset(95% 0 0 0); transform: translate(2px, 0); }
+            20% { clip-path: inset(60% 0 20% 0); transform: translate(-2px, 0); }
+            40% { clip-path: inset(40% 0 40% 0); transform: translate(2px, 0); }
+            60% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, 0); }
+            80% { clip-path: inset(5% 0 80% 0); transform: translate(2px, 0); }
+        }
+
+        @keyframes glitch-skew {
+            0%, 100% { transform: skew(0deg); }
+            20% { transform: skew(-2deg); }
+            40% { transform: skew(2deg); }
+            60% { transform: skew(-1deg); }
+            80% { transform: skew(1deg); }
+        }
+
+        /* Scan Lines */
+        .scan-lines::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 240, 255, 0.03) 2px,
+                rgba(0, 240, 255, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* Page Transitions */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            animation: pixel-shake 0.3s ease;
+        }
+
+        @keyframes pixel-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            50% { transform: translateX(2px); }
+            75% { transform: translateX(-1px); }
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+        }
+
+        .btn-pink {
+            background: var(--accent-pink);
+            color: var(--text-primary);
+            border: none;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Agent Text */
+        .agent-text {
+            font-family: 'VT323', monospace;
+            color: var(--accent-yellow);
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        /* Typewriter */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid var(--accent-cyan);
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--accent-cyan); }
+        }
+
+        /* ==================== LANDING PAGE ==================== */
+        #landing {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .landing-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .logo-container {
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 56px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tagline {
+            font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 4px;
+            font-family: 'VT323', monospace;
+        }
+
+        .hook-text {
+            font-size: 18px;
+            color: var(--accent-yellow);
+            margin-bottom: 60px;
+            max-width: 400px;
+            line-height: 1.8;
+            font-family: 'VT323', monospace;
+        }
+
+        .start-btn {
+            padding: 20px 48px;
+            font-size: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(0, 240, 255, 0); }
+        }
+
+        .floating-hint {
+            position: absolute;
+            bottom: 40px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'VT323', monospace;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* ==================== ONBOARDING ==================== */
+        .onboarding-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .onboarding-header h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .onboarding-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .dna-section {
+            margin-bottom: 32px;
+        }
+
+        .dna-title {
+            font-family: 'VT323', monospace;
+            color: var(--accent-yellow);
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .tag-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .tag-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .tag-item:hover {
+            border-color: var(--text-secondary);
+            background: var(--bg-card);
+        }
+
+        .tag-item.selected {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+
+        .tag-item.selected .tag-desc {
+            color: var(--bg-primary);
+            opacity: 0.8;
+        }
+
+        .tag-label {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tag-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .avatar-preview {
+            text-align: center;
+            margin: 40px 0;
+            padding: 40px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar-svg {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.3));
+        }
+
+        .avatar-label {
+            font-family: 'VT323', monospace;
+            color: var(--accent-yellow);
+            font-size: 18px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+            transition: width 0.5s ease;
+        }
+
+        /* ==================== SILENCE ROUND ==================== */
+        #silence {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        .silence-warning {
+            font-family: 'VT323', monospace;
+            color: var(--accent-pink);
+            font-size: 18px;
+            margin-bottom: 40px;
+            animation: blink 1.5s infinite;
+            border: 1px solid var(--accent-pink);
+            padding: 12px 24px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .silence-timer {
+            font-size: 80px;
+            font-weight: 700;
+            font-family: 'VT323', monospace;
+            color: var(--accent-cyan);
+            margin-bottom: 40px;
+            letter-spacing: 8px;
+            text-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+        }
+
+        .silence-book {
+            width: 120px;
+            height: 160px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .silence-book::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .silence-book-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 20px;
+            writing-mode: vertical-rl;
+        }
+
+        .silence-hint {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 300px;
+            line-height: 1.8;
+        }
+
+        /* ==================== DETECTIVE ROUND ==================== */
+        .detective-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-top: 20px;
+        }
+
+        .round-badge {
+            font-family: 'VT323', monospace;
+            color: var(--accent-cyan);
+            font-size: 14px;
+            border: 1px solid var(--accent-cyan);
+            padding: 4px 12px;
+        }
+
+        .clue-container {
+            margin-bottom: 24px;
+        }
+
+        .clue-card {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-yellow);
+            padding: 16px;
+            margin-bottom: 12px;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: clue-appear 0.5s ease forwards;
+        }
+
+        .clue-card:nth-child(1) { animation-delay: 0.5s; }
+        .clue-card:nth-child(2) { animation-delay: 2s; }
+        .clue-card:nth-child(3) { animation-delay: 3.5s; }
+
+        @keyframes clue-appear {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .clue-label {
+            font-family: 'VT323', monospace;
+            color: var(--accent-yellow);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .clue-text {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .suspect-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .suspect-card {
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+        }
+
+        .suspect-card:hover {
+            border-color: var(--accent-cyan);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        .suspect-card.selected {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        .suspect-avatar {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 4px;
+        }
+
+        .suspect-id {
+            font-family: 'VT323', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== RESULT ==================== */
+        #result-success, #result-fail {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            animation: result-pulse 2s infinite;
+        }
+
+        @keyframes result-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .result-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 40px;
+            max-width: 320px;
+            line-height: 1.6;
+        }
+
+        .match-card {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            padding: 32px;
+            margin-bottom: 32px;
+            width: 100%;
+            max-width: 340px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .match-avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+        }
+
+        .match-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .match-tags {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .match-tag {
+            padding: 4px 12px;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--accent-cyan);
+            font-size: 12px;
+            border-radius: 2px;
+            font-family: 'VT323', monospace;
+        }
+
+        .regret-score {
+            font-family: 'VT323', monospace;
+            font-size: 48px;
+            color: var(--accent-pink);
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+        }
+
+        .ghost-avatar {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        .fail-shake {
+            animation: fail-shake 0.5s ease;
+        }
+
+        @keyframes fail-shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        /* ==================== POSTER ==================== */
+        #poster {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+        }
+
+        .poster-canvas {
+            background: #f5f5f0;
+            width: 320px;
+            height: 480px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        /* ==================== EASTER EGGS ==================== */
+        .easter-egg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .easter-egg:hover {
+            opacity: 1;
+        }
+
+        .hidden-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-yellow);
+            padding: 24px;
+            border-radius: 4px;
+            z-index: 1000;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .hidden-message.show {
+            display: block;
+            animation: fade-in 0.3s ease;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 40px;
+                letter-spacing: 4px;
+            }
+            
+            .silence-timer {
+                font-size: 60px;
+            }
+            
+            .suspect-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .tag-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="scan-lines">
+    <!-- Landing Page -->
+    <div id="landing" class="page active">
+        <div class="landing-bg"></div>
+        
+        <div class="logo-container">
+            <h1 class="logo glitch" data-text="READ DETECTIVE">READ DETECTIVE</h1>
+            <p class="tagline">阅读侦探 · 寻找失散书友</p>
+        </div>
+        
+        <p class="hook-text">
+            你的书友正在现场流浪<br>
+            带上你的书，来场沉默的邂逅
+        </p>
+        
+        <button class="btn btn-primary start-btn" onclick="startJourney()">
+            开始寻找
+        </button>
+        
+        <p class="floating-hint">点击开始，无需注册</p>
+    </div>
+
+    <!-- Onboarding Page -->
+    <div id="onboarding" class="page">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 33%"></div>
+        </div>
+        
+        <div class="onboarding-header">
+            <h2>生成你的阅读DNA</h2>
+            <p>选择3个标签，系统将为你匹配灵魂书友</p>
+        </div>
+
+        <div class="dna-section">
+            <div class="dna-title">[世界观] WORLDVIEW</div>
+            <div class="tag-grid" id="worldview-tags">
+                <div class="tag-item" data-value="sci-fi" data-category="worldview">
+                    <div class="tag-label">科幻未来</div>
+                    <div class="tag-desc">相信技术会改变一切</div>
+                </div>
+                <div class="tag-item" data-value="reality" data-category="worldview">
+                    <div class="tag-label">现实主义</div>
+                    <div class="tag-desc">关注当下的真实</div>
+                </div>
+                <div class="tag-item" data-value="history" data-category="worldview">
+                    <div class="tag-label">历史长河</div>
+                    <div class="tag-desc">从过去寻找答案</div>
+                </div>
+                <div class="tag-item" data-value="fantasy" data-category="worldview">
+                    <div class="tag-label">奇幻魔法</div>
+                    <div class="tag-desc">相信想象的力量</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dna-section">
+            <div class="dna-title">[情感基调] EMOTION</div>
+            <div class="tag-grid" id="emotion-tags">
+                <div class="tag-item" data-value="heavy" data-category="emotion">
+                    <div class="tag-label">沉重深刻</div>
+                    <div class="tag-desc">喜欢有重量的文字</div>
+                </div>
+                <div class="tag-item" data-value="light" data-category="emotion">
+                    <div class="tag-label">轻松治愈</div>
+                    <div class="tag-desc">需要温暖的慰藉</div>
+                </div>
+                <div class="tag-item" data-value="healing" data-category="emotion">
+                    <div class="tag-label">温暖疗愈</div>
+                    <div class="tag-desc">寻找内心的平静</div>
+                </div>
+                <div class="tag-item" data-value="dark" data-category="emotion">
+                    <div class="tag-label">黑暗致郁</div>
+                    <div class="tag-desc">在阴影中思考</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dna-section">
+            <div class="dna-title">[价值观] VALUE</div>
+            <div class="tag-grid" id="value-tags">
+                <div class="tag-item" data-value="collectivism" data-category="value">
+                    <div class="tag-label">集体主义</div>
+                    <div class="tag-desc">相信群体的力量</div>
+                </div>
+                <div class="tag-item" data-value="individualism" data-category="value">
+                    <div class="tag-label">个人英雄</div>
+                    <div class="tag-desc">推崇个体的光芒</div>
+                </div>
+                <div class="tag-item" data-value="existentialism" data-category="value">
+                    <div class="tag-label">存在主义</div>
+                    <div class="tag-desc">追问存在的意义</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="avatar-preview">
+            <svg class="avatar-svg" id="avatar-svg" viewBox="0 0 140 140">
+                <defs>
+                    <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00F0FF;stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:#FF006E;stop-opacity:0.3" />
+                    </linearGradient>
+                </defs>
+                <rect width="140" height="140" fill="#12121A" rx="4"/>
+                <circle cx="70" cy="70" r="50" fill="url(#avatarGrad)"/>
+                <circle cx="70" cy="70" r="45" fill="none" stroke="#00F0FF" stroke-width="2"/>
+                <polygon points="70,30 100,100 40,100" fill="none" stroke="#00F0FF" stroke-width="2"/>
+                <circle cx="70" cy="75" r="20" fill="none" stroke="#FF006E" stroke-width="1"/>
+                <text x="70" y="85" text-anchor="middle" fill="#00F0FF" font-family="VT323" font-size="24">?</text>
+            </svg>
+            <div class="avatar-label" id="avatar-label">等待DNA输入_</div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;" onclick="enterSilence()" id="start-btn" disabled>
+            进入沉默时刻
+        </button>
+    </div>
+
+    <!-- Silence Round -->
+    <div id="silence" class="page">
+        <div class="silence-warning">⚠ 强制沉默 · 禁止交谈</div>
+        
+        <div class="silence-book">
+            <div class="silence-book-text">你的书</div>
+        </div>
+        
+        <div class="silence-timer" id="silence-timer">03:00</div>
+        
+        <p class="silence-hint">
+            在这3分钟里，你只能做一件事：<br>
+            读你带来的书，或者<br>
+            观察这个房间里的人
+        </p>
+
+        <button class="btn" onclick="enterDetective()" style="margin-top: 40px;">
+            时间到，进入侦探模式 →
+        </button>
+    </div>
+
+    <!-- Detective Round -->
+    <div id="detective" class="page">
+        <div class="detective-header">
+            <h2>线索分析中_</h2>
+            <span class="round-badge">ROUND 2/3</span>
+        </div>
+
+        <div class="clue-container">
+            <div class="clue-card">
+                <div class="clue-label">[线索 A] 来自Agent</div>
+                <div class="clue-text">Ta的包里有一本被翻烂的书，书页边缘写满了批注。</div>
+            </div>
+            
+            <div class="clue-card">
+                <div class="clue-label">[线索 B] 来自Agent</div>
+                <div class="clue-text">Ta在沉默时刻看了三次手表，但每次都继续读下去了。</div>
+            </div>
+            
+            <div class="clue-card">
+                <div class="clue-label">[线索 C] 来自Agent</div>
+                <div class="clue-text">Ta的书签是一张电影票根，日期是上周。</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">嫌疑人 · 点击选择你的灵魂书友</p>
+            
+            <div class="suspect-grid" id="suspect-grid">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div id="selected-info" style="display: none; margin-bottom: 24px;">
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <svg width="60" height="60" id="selected-avatar"></svg>
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">侦探 <span id="selected-id"></span></div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">阅读DNA匹配度: <span style="color: var(--accent-cyan);">87%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;" onclick="submitChoice()" id="submit-btn" disabled>
+            确认指认
+        </button>
+    </div>
+
+    <!-- Result Success -->
+    <div id="result-success" class="page">
+        <div class="result-icon">✦</div>
+        <h2 class="result-title" style="color: var(--accent-cyan);">灵魂书友已确认</h2>
+        <p class="result-subtitle">你们的阅读DNA产生了共振，Agent已验证匹配</p>
+
+        <div class="match-card">
+            <svg class="match-avatar" viewBox="0 0 80 80">
+                <rect width="80" height="80" fill="#12121A" rx="4"/>
+                <polygon points="40,15 65,65 15,65" fill="none" stroke="#00F0FF" stroke-width="2"/>
+                <circle cx="40" cy="45" r="15" fill="none" stroke="#00F0FF" stroke-width="1"/>
+            </svg>
+            <div class="match-name">侦探 #07</div>
+            <div class="match-tags">
+                <span class="match-tag">科幻未来</span>
+                <span class="match-tag">黑暗致郁</span>
+                <span class="match-tag">存在主义</span>
+            </div>
+        </div>
+
+        <div style="width: 100%; max-width: 340px; margin-bottom: 24px;">
+            <div style="background: white; padding: 20px; border-radius: 4px; text-align: center;">
+                <div style="color: #333; font-size: 12px; margin-bottom: 12px;">扫码添加微信，继续这场对话</div>
+                <div style="width: 140px; height: 140px; background: linear-gradient(135deg, #333, #666); margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+                    二维码占位
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="location.reload()">再来一局</button>
+    </div>
+
+    <!-- Result Fail -->
+    <div id="result-fail" class="page">
+        <div class="result-icon fail-shake">✕</div>
+        <div class="regret-score">遗憾指数 87%</div>
+        <h2 class="result-title" style="color: var(--accent-pink);">错付</h2>
+        <p class="result-subtitle">你的Agent在哭泣，Ta发现了真相但你视而不见</p>
+
+        <div class="match-card">
+            <svg class="match-avatar ghost-avatar" viewBox="0 0 80 80">
+                <rect width="80" height="80" fill="#12121A" rx="4"/>
+                <polygon points="40,15 65,65 15,65" fill="none" stroke="#8B8B9E" stroke-width="2"/>
+                <circle cx="40" cy="45" r="15" fill="none" stroke="#8B8B9E" stroke-width="1"/>
+            </svg>
+            <div class="match-name" style="color: var(--text-secondary);">侦探 #03 (真正的灵魂书友)</div>
+            <div class="match-tags">
+                <span class="match-tag" style="background: rgba(139, 139, 158, 0.1); color: var(--text-secondary);">科幻未来</span>
+                <span class="match-tag" style="background: rgba(139, 139, 158, 0.1); color: var(--text-secondary);">沉重深刻</span>
+                <span class="match-tag" style="background: rgba(139, 139, 158, 0.1); color: var(--text-secondary);">集体主义</span>
+            </div>
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <span style="font-family: 'VT323', monospace; color: var(--accent-pink);">🔒 联系方式已锁定</span>
+            </div>
+        </div>
+
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; max-width: 320px; text-align: center;">
+            你们曾相距0.5米，但灵魂错过了彼此
+        </p>
+
+        <button class="btn btn-pink" style="width: 100%; max-width: 340px; margin-bottom: 12px;" onclick="showPoster()">
+            生成寻友启事
+        </button>
+        <button class="btn" onclick="location.reload()">再来一局</button>
+    </div>
+
+    <!-- Poster -->
+    <div id="poster" class="page">
+        <h2 style="margin-bottom: 24px;">寻友启事</h2>
+        
+        <div class="poster-canvas" id="poster-canvas">
+            <div style="padding: 30px; color: #333;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">紧急寻人</div>
+                    <div style="width: 80px; height: 80px; border: 3px solid #FF006E; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: #FF006E; font-weight: bold; transform: rotate(-15deg);">
+                        MISSING
+                    </div>
+                </div>
+                
+                <div style="font-size: 14px; line-height: 2; margin-bottom: 30px;">
+                    <p>我的灵魂书友于今日走失</p>
+                    <p>特征：喜欢科幻但相信个人英雄主义</p>
+                    <p>走失地点：周五深夜读书会现场</p>
+                    <p>如有线索，请扫码参加下一场搜寻行动</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #333; margin: 0 auto;"></div>
+                    <div style="font-size: 12px; margin-top: 10px; color: #666;">扫码寻找书友</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; max-width: 340px; margin-bottom: 12px;" onclick="downloadPoster()">
+            保存海报
+        </button>
+        <button class="btn" onclick="location.reload()">返回首页</button>
+    </div>
+
+    <!-- Easter Egg -->
+    <div class="easter-egg" onclick="showEasterEgg()"></div>
+    
+    <div class="hidden-message" id="easter-egg-message">
+        <div style="font-family: 'VT323', monospace; color: var(--accent-yellow); font-size: 18px; margin-bottom: 16px;">🎉 发现彩蛋！</div>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">你找到了阅读侦探的隐藏彩蛋。</p>
+        
+        <p style="font-size: 12px; color: var(--text-muted);">秘密代码：READER-2026</p>
+        
+        <button class="btn" onclick="hideEasterEgg()" style="margin-top: 16px;">关闭</button>
+    </div>
+
+    <script>
+        // State
+        let selectedTags = {
+            worldview: null,
+            emotion: null,
+            value: null
+        };
+        let selectedSuspect = null;
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function startJourney() {
+            showPage('onboarding');
+        }
+
+        // Tag Selection
+        document.querySelectorAll('.tag-item').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const category = this.dataset.category;
+                const value = this.dataset.value;
+                
+                // Remove previous selection in same category
+                document.querySelectorAll(`[data-category="${category}"]`).forEach(t => {
+                    t.classList.remove('selected');
+                });
+                
+                // Select new
+                this.classList.add('selected');
+                selectedTags[category] = value;
+                
+                updateAvatar();
+                checkCanStart();
+            });
+        });
+
+        function updateAvatar() {
+            const svg = document.getElementById('avatar-svg');
+            const label = document.getElementById('avatar-label');
+            
+            if (selectedTags.worldview && selectedTags.emotion && selectedTags.value) {
+                const colors = {
+                    'sci-fi': '#00F0FF',
+                    'reality': '#FFE66D',
+                    'history': '#8B8B9E',
+                    'fantasy': '#FF006E'
+                };
+                const color = colors[selectedTags.worldview] || '#00F0FF';
+                
+                svg.innerHTML = `
+                    <defs>
+                        <linearGradient id="avatarGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:${color};stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#FF006E;stop-opacity:0.3" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="140" height="140" fill="#12121A" rx="4"/>
+                    <circle cx="70" cy="70" r="50" fill="url(#avatarGrad2)"/>
+                    <polygon points="70,25 105,105 35,105" fill="none" stroke="${color}" stroke-width="3"/>
+                    <circle cx="70" cy="80" r="25" fill="none" stroke="${color}" stroke-width="2"/>
+                    <circle cx="60" cy="75" r="6" fill="${color}"/>
+                    <circle cx="80" cy="75" r="6" fill="${color}"/>
+                    <path d="M 55 90 Q 70 100 85 90" stroke="${color}" fill="none" stroke-width="2"/>
+                `;
+                
+                label.textContent = `Agent [${selectedTags.worldview}-${selectedTags.emotion}-${selectedTags.value}] 已激活_`;
+                label.style.color = color;
+            }
+        }
+
+        function checkCanStart() {
+            const btn = document.getElementById('start-btn');
+            if (selectedTags.worldview && selectedTags.emotion && selectedTags.value) {
+                btn.disabled = false;
+            }
+        }
+
+        // Silence Round
+        let silenceTimer;
+        function enterSilence() {
+            showPage('silence');
+            startSilenceTimer();
+        }
+
+        function startSilenceTimer() {
+            let seconds = 3 * 60; // 3 minutes
+            const display = document.getElementById('silence-timer');
+            
+            clearInterval(silenceTimer);
+            silenceTimer = setInterval(() => {
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                display.textContent = `${m}:${s}`;
+                seconds--;
+                
+                if (seconds < 0) {
+                    clearInterval(silenceTimer);
+                    enterDetective();
+                }
+            }, 1000);
+        }
+
+        // Detective Round
+        function enterDetective() {
+            showPage('detective');
+            generateSuspects();
+        }
+
+        function generateSuspects() {
+            const grid = document.getElementById('suspect-grid');
+            grid.innerHTML = '';
+            
+            const avatars = [
+                `<polygon points="30,5 55,55 5,55" fill="none" stroke="#00F0FF" stroke-width="2"/><circle cx="30" cy="35" r="10" fill="none" stroke="#00F0FF" stroke-width="1"/>`,
+                `<rect x="10" y="10" width="40" height="40" fill="none" stroke="#FF006E" stroke-width="2"/><circle cx="30" cy="30" r="12" fill="none" stroke="#FF006E" stroke-width="1"/>`,
+                `<circle cx="30" cy="30" r="25" fill="none" stroke="#FFE66D" stroke-width="2"/><rect x="20" y="20" width="20" height="20" fill="none" stroke="#FFE66D" stroke-width="1"/>`,
+                `<path d="M10 50 L30 10 L50 50 Z" fill="none" stroke="#8B8B9E" stroke-width="2"/><circle cx="30" cy="35" r="8" fill="none" stroke="#8B8B9E" stroke-width="1"/>`,
+            ];
+            
+            for (let i = 1; i <= 10; i++) {
+                const card = document.createElement('div');
+                card.className = 'suspect-card';
+                card.innerHTML = `
+                    <svg class="suspect-avatar" viewBox="0 0 60 60">
+                        <rect width="60" height="60" fill="#0A0A0F"/>
+                        ${avatars[i % 4]}
+                    </svg>
+                    <span class="suspect-id">#${i.toString().padStart(2, '0')}</span>
+                `;
+                card.onclick = () => selectSuspect(i, card, avatars[i % 4]);
+                grid.appendChild(card);
+            }
+        }
+
+        function selectSuspect(id, card, avatarSvg) {
+            document.querySelectorAll('.suspect-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedSuspect = id;
+            
+            document.getElementById('selected-info').style.display = 'block';
+            document.getElementById('selected-id').textContent = id.toString().padStart(2, '0');
+            document.getElementById('selected-avatar').innerHTML = `
+                <rect width="60" height="60" fill="#0A0A0F"/>
+                ${avatarSvg}
+            `;
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        function submitChoice() {
+            // Random match result
+            const isMatch = Math.random() > 0.5;
+            if (isMatch) {
+                showPage('result-success');
+            } else {
+                showPage('result-fail');
+            }
+        }
+
+        // Poster
+        function showPoster() {
+            showPage('poster');
+        }
+
+        function downloadPoster() {
+            alert('海报保存功能（实际项目中使用html2canvas）');
+        }
+
+        // Easter Egg
+        function showEasterEgg() {
+            document.getElementById('easter-egg-message').classList.add('show');
+        }
+
+        function hideEasterEgg() {
+            document.getElementById('easter-egg-message').classList.remove('show');
+        }
+
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            const msg = document.getElementById('easter-egg-message');
+            if (msg.classList.contains('show') && !msg.contains(e.target) && !e.target.classList.contains('easter-egg')) {
+                hideEasterEgg();
+            }
+        });
+    </script>
+</body>
+</html>
