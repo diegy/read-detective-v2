@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小宇宙转文字 | Xiaoyuzhou Transcriber</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .format-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .format-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .format-option input[type="radio"] {
+            cursor: pointer;
+        }
+        
+        .format-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .progress.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .result.active {
+            display: block;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            width: auto;
+        }
+        
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+        
+        .transcript-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #444;
+            white-space: pre-wrap;
+        }
+        
+        .error {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fee;
+            border-left: 4px solid #c00;
+            border-radius: 4px;
+            color: #c00;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .feature {
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-text {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ 小宇宙转文字</h1>
+        <p class="subtitle">一键将播客转换为可编辑的文字稿</p>
+        
+        <form id="transcribeForm">
+            <div class="input-group">
+                <label for="url">小宇宙播客链接</label>
+                <input 
+                    type="text" 
+                    id="url" 
+                    name="url" 
+                    placeholder="https://www.xiaoyuzhoufm.com/episode/..."
+                    required
+                >
+            </div>
+            
+            <div class="input-group">
+                <label>输出格式</label>
+                <div class="format-options">
+                    <div class="format-option">
+                        <input type="radio" id="md" name="format" value="markdown" checked>
+                        <label for="md">Markdown</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="txt" name="format" value="text">
+                        <label for="txt">纯文本</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="srt" name="format" value="srt">
+                        <label for="srt">SRT字幕</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" id="submitBtn">开始转换</button>
+        </form>
+        
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">正在解析链接...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <div class="result-header">
+                <span class="result-title">✅ 转换完成</span>
+                <div class="result-actions">
+                    <button class="btn-secondary" onclick="copyText()">复制全文</button>
+                    <button class="btn-secondary" onclick="downloadFile()">下载文件</button>
+                </div>
+            </div>
+            <div class="transcript-preview" id="transcriptPreview"></div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">快速转写</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-text">精准识别</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-text">隐私安全</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let transcriptData = '';
+        let outputFormat = 'markdown';
+        
+        document.getElementById('transcribeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const format = document.querySelector('input[name="format"]:checked').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const progress = document.getElementById('progress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const error = document.getElementById('error');
+            const result = document.getElementById('result');
+            
+            // Reset UI
+            error.classList.remove('active');
+            result.classList.remove('active');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '转换中...';
+            progress.classList.add('active');
+            outputFormat = format;
+            
+            // Simulate progress
+            const steps = [
+                { pct: 20, text: '正在解析链接...', delay: 500 },
+                { pct: 40, text: '正在获取音频...', delay: 1000 },
+                { pct: 60, text: '正在转写语音...', delay: 2000 },
+                { pct: 80, text: '正在格式化...', delay: 500 },
+                { pct: 100, text: '完成！', delay: 300 }
+            ];
+            
+            for (const step of steps) {
+                await new Promise(r => setTimeout(r, step.delay));
+                progressFill.style.width = step.pct + '%';
+                progressText.textContent = step.text;
+            }
+            
+            // TODO: Replace with actual API call
+            // For demo, show mock result
+            transcriptData = generateMockResult(url, format);
+            
+            document.getElementById('transcriptPreview').textContent = transcriptData;
+            result.classList.add('active');
+            progress.classList.remove('active');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '开始转换';
+        });
+        
+        function generateMockResult(url, format) {
+            const formats = {
+                markdown: `# 示例播客标题
+
+**播客**：[示例播客名称](${url})
+**时长**：45:32
+**转写时间**：2026-02-27
+
+---
+
+## 完整文字稿
+
+**[00:00]** 主持人：大家好，欢迎收听本期节目。
+
+**[02:15]** 嘉宾A：我觉得这个问题可以从三个角度来看...
+
+**[05:30]** 嘉宾B：我补充一下，刚才提到的那个概念...
+
+---
+
+*转写由小宇宙转文字工具生成*`,
+                
+                text: `标题：示例播客标题
+播客：示例播客名称
+时长：45:32
+
+========================================
+
+[00:00] 主持人：大家好，欢迎收听本期节目。
+
+[02:15] 嘉宾A：我觉得这个问题可以从三个角度来看...
+
+[05:30] 嘉宾B：我补充一下，刚才提到的那个概念...`,
+                
+                srt: `1
+00:00:00,000 --> 00:00:10,000
+主持人：大家好，欢迎收听本期节目。
+
+2
+00:02:15,000 --> 00:02:25,000
+嘉宾A：我觉得这个问题可以从三个角度来看...
+
+3
+00:05:30,000 --> 00:05:40,000
+嘉宾B：我补充一下，刚才提到的那个概念...`
+            };
+            
+            return formats[format] || formats.markdown;
+        }
+        
+        function copyText() {
+            navigator.clipboard.writeText(transcriptData).then(() => {
+                alert('已复制到剪贴板');
+            });
+        }
+        
+        function downloadFile() {
+            const extensions = { markdown: 'md', text: 'txt', srt: 'srt' };
+            const ext = extensions[outputFormat] || 'txt';
+            const blob = new Blob([transcriptData], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `transcript.${ext}`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
